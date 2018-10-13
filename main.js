@@ -1,6 +1,8 @@
 const electron = require('electron')
+const _http = require('http')
 
 const { app, BrowserWindow } = electron
+const testString = 'hello dxy'
 
 let win
 
