@@ -1,0 +1,9 @@
+{
+  "u": "",
+  "p": "",
+  "url": {
+    "login": "http://192.0.0.6/cgi-bin/do_login",
+    "logout": "http://192.0.0.6/cgi-bin/do_logout",
+    "forceLogout": "http://192.0.0.6/cgi-bin/force_logout"
+  }
+}

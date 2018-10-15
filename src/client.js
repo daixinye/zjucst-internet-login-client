@@ -1,44 +1,6 @@
-const _http = require('http')
-const _querystring = require('querystring')
 const _md5 = require('./md5')
-const { URL } = require('url')
-
-function post (url, postDataObj, callback) {
-  let postData = _querystring.stringify(postDataObj)
-  let urlWithFormat = new URL(url)
-
-  let options = {
-    hostname: urlWithFormat.hostname,
-    path: urlWithFormat.pathname,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(postData)
-    }
-  }
-
-  let req = _http.request(options, res => {
-    let body = ''
-    // console.log(`STATUS: ${res.statusCode}`)
-    // console.log(`HEADERS: ${JSON.stringify(res.headers)}`)
-    res.setEncoding('utf8')
-    res.on('data', chunk => {
-      body += chunk
-      // console.log(`BODY: ${chunk}`)
-    })
-    res.on('end', () => {
-      // console.log('No more data in response.')
-      callback(body)
-    })
-  })
-
-  req.on('error', e => {
-    console.error(`problem with request: ${e.message}`)
-  })
-
-  req.write(postData)
-  req.end()
-}
+const setting = require('./setting')
+const { post } = require('./post')
 
 class Client {
   constructor (username, password) {
@@ -55,13 +17,23 @@ class Client {
       n: 100
     }
 
-    let url = 'http://192.0.0.6/cgi-bin/do_login'
+    let url = setting.url.login
 
     post(url, postData, res => {
       console.log(res)
       let pattern = /^[\d]+$/
       if (pattern.test(res)) {
         this.uid = res
+      } else {
+        switch (res) {
+          case 'online_num_error':
+            // 强制登出
+            this.forceLogout()
+            // 每隔5秒尝试登陆直到登陆成功
+            setTimeout(() => {
+              this.login()
+            }, 5 * 1000)
+        }
       }
     })
   }
@@ -70,7 +42,7 @@ class Client {
     let postData = {
       uid: this.uid
     }
-    let url = 'http://192.0.0.6/cgi-bin/do_logout'
+    let url = setting.url.logout
 
     post(url, postData, res => {
       console.log(res)
@@ -85,7 +57,7 @@ class Client {
       type: 1,
       n: 1
     }
-    let url = 'http://192.0.0.6/cgi-bin/force_logout'
+    let url = setting.url.forceLogout
 
     post(url, postData, res => {
       console.log(res)
