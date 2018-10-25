@@ -1,9 +1,11 @@
 {
-  "u": "",
-  "p": "",
   "url": {
+    "index": "http://192.0.0.6",
     "login": "http://192.0.0.6/cgi-bin/do_login",
     "logout": "http://192.0.0.6/cgi-bin/do_logout",
     "forceLogout": "http://192.0.0.6/cgi-bin/force_logout"
+  },
+  "relative_path": {
+    "icon": "images/icon.png"
   }
 }
