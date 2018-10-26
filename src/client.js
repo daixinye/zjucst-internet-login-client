@@ -19,25 +19,27 @@ class Client {
 
     let url = setting.url.login
 
-    post(url, postData, res => {
-      let pattern = /^[\d]+$/
-      if (pattern.test(res)) {
-        this.uid = res
-        console.log(`login ok:${this.uid}`)
-      } else {
-        switch (res) {
-          case 'online_num_error':
-            // 正常退出失败->强制登出
-            this.forceLogout()
-            // 每隔5秒尝试登陆直到登陆成功
-            setTimeout(() => {
-              this.login()
-            }, 5 * 1000)
-            break
-          default:
-            console.log(res)
+    return new Promise((resolve, reject) => {
+      post(url, postData, res => {
+        let pattern = /^[\d]+$/
+        if (pattern.test(res)) {
+          this.uid = res
+          resolve(res)
+        } else {
+          switch (res) {
+            case 'online_num_error':
+              // 正常退出失败->强制登出
+              this.forceLogout()
+              // 每隔5秒尝试登陆直到登陆成功
+              setTimeout(() => {
+                this.login()
+              }, 5 * 1000)
+              break
+            default:
+              reject(res)
+          }
         }
-      }
+      })
     })
   }
 
@@ -47,8 +49,14 @@ class Client {
     }
     let url = setting.url.logout
 
-    post(url, postData, res => {
-      console.log(res)
+    return new Promise((resolve, reject) => {
+      post(url, postData, res => {
+        if (res === 'logout_ok') {
+          resolve(res)
+        } else {
+          reject(res)
+        }
+      })
     })
   }
 
