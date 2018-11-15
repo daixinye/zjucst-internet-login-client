@@ -70,26 +70,53 @@ app.on('ready', () => {
             }).show()
           })
           .catch(res => {
-            new Notification({
-              title: '登录失败',
-              subtitle: `error_message: ${res}`
-            }).show()
-
             if (res === 'online_num_error') {
+              let autoLogin = () => {
+                let loginMaxTry = 12
+
+                return () => {
+                  client
+                    .login()
+                    .then(res => {
+                      new Notification({
+                        title: '自动登录成功',
+                        subtitle: `uid:${res}`
+                      }).show()
+                    })
+                    .catch(res => {
+                      if (res === 'online_num_error') {
+                        loginMaxTry--
+                        setTimeout(autoLogin, 10 * 1000)
+                      } else {
+                        new Notification({
+                          title: '自动登录失败',
+                          subtitle: `error_message: ${res}`
+                        }).show()
+                      }
+                    })
+                }
+              }
               client
                 .forceLogout()
                 .then(res => {
                   new Notification({
                     title: '当前账户已在别处登录，强制下线成功，即将登录',
-                    subtitle: `${res}，将在1分钟后自动登录`
+                    subtitle: `${res}，将在1分钟后尝试自动登录`
                   }).show()
+
+                  autoLogin()
                 })
-                .cache(res => {
+                .catch(res => {
                   new Notification({
                     title: '当前账户已在别处登录，强制下线失败！',
                     subtitle: `error_message: ${res}`
                   }).show()
                 })
+            } else {
+              new Notification({
+                title: '登录失败',
+                subtitle: `error_message: ${res}`
+              }).show()
             }
           })
       }
