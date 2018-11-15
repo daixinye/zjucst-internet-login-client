@@ -12,13 +12,13 @@ let tray = null
 
 const requireUserInfo = function () {
   let noti = new Notification({
-    title: '需要账号和密码',
-    subtitle: '悬停此处，输入账号和密码，用英文冒号（:）隔开',
+    title: '需要账号和密码，悬停此处并点击回复',
+    subtitle: '输入账号及密码，用@分隔（e.g. 21851233@12345）',
     hasReply: true
   })
 
   noti.on('reply', (e, text) => {
-    text = text.split(':')
+    text = text.split('@')
     let username = text[0] || ''
     let password = text[1] || ''
     if (username && password) {
@@ -66,17 +66,30 @@ app.on('ready', () => {
           .then(res => {
             new Notification({
               title: '登录成功',
-              subtitle: res
+              subtitle: `uid:${res}`
             }).show()
           })
           .catch(res => {
             new Notification({
               title: '登录失败',
-              subtitle: res
+              subtitle: `error_message: ${res}`
             }).show()
 
             if (res === 'online_num_error') {
-              // todo: 添加 强制下线自动登录 逻辑
+              client
+                .forceLogout()
+                .then(res => {
+                  new Notification({
+                    title: '当前账户已在别处登录，强制下线成功，即将登录',
+                    subtitle: `${res}，将在1分钟后自动登录`
+                  }).show()
+                })
+                .cache(res => {
+                  new Notification({
+                    title: '当前账户已在别处登录，强制下线失败！',
+                    subtitle: `error_message: ${res}`
+                  }).show()
+                })
             }
           })
       }
@@ -93,13 +106,13 @@ app.on('ready', () => {
           .then(res => {
             new Notification({
               title: '下线成功',
-              subtitle: res
+              subtitle: `success_message: ${res}`
             }).show()
           })
           .catch(res => {
             new Notification({
               title: '下线失败',
-              subtitle: res
+              subtitle: `error_message: ${res}`
             }).show()
           })
       }
@@ -117,13 +130,13 @@ app.on('ready', () => {
           .then(res => {
             new Notification({
               title: '强制下线成功',
-              subtitle: res
+              subtitle: `success_message: ${res}`
             }).show()
           })
           .catch(res => {
             new Notification({
               title: '强制下线失败',
-              subtitle: res
+              subtitle: `error_message: ${res}`
             }).show()
           })
       }
@@ -135,17 +148,17 @@ app.on('ready', () => {
       type: 'separator'
     },
     {
-      label: '清除登录信息',
+      label: '清除账号信息',
       type: 'normal',
       click: () => {
         let username = store.get('username')
 
         store.delete('username')
         store.delete('password')
-        this.client = null
+        client = null
 
         new Notification({
-          title: '清除登录信息成功',
+          title: '清除账号信息成功',
           subtitle: username
         }).show()
       }
