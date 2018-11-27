@@ -71,31 +71,6 @@ app.on('ready', () => {
           })
           .catch(res => {
             if (res === 'online_num_error') {
-              let autoLogin = () => {
-                let loginMaxTry = 12
-
-                return () => {
-                  client
-                    .login()
-                    .then(res => {
-                      new Notification({
-                        title: '自动登录成功',
-                        subtitle: `uid:${res}`
-                      }).show()
-                    })
-                    .catch(res => {
-                      if (res === 'online_num_error') {
-                        loginMaxTry--
-                        setTimeout(autoLogin, 10 * 1000)
-                      } else {
-                        new Notification({
-                          title: '自动登录失败',
-                          subtitle: `error_message: ${res}`
-                        }).show()
-                      }
-                    })
-                }
-              }
               client
                 .forceLogout()
                 .then(res => {
@@ -104,7 +79,33 @@ app.on('ready', () => {
                     subtitle: `${res}，将在1分钟后尝试自动登录`
                   }).show()
 
-                  autoLogin()
+                  let loginMaxTry = 12
+                  let interval = setInterval(() => {
+                    console.log('try login', loginMaxTry)
+                    if (loginMaxTry > 0) {
+                      client
+                        .login()
+                        .then(res => {
+                          new Notification({
+                            title: '自动登录成功',
+                            subtitle: `uid:${res}`
+                          }).show()
+                          clearInterval(interval)
+                        })
+                        .catch(e => {
+                          if (e === 'online_num_error') {
+                            loginMaxTry--
+                          } else {
+                            new Notification({
+                              title: '自动登录失败',
+                              subtitle: `error_message: ${e}`
+                            }).show()
+                          }
+                        })
+                    } else {
+                      clearInterval(interval)
+                    }
+                  }, 1000 * 10)
                 })
                 .catch(res => {
                   new Notification({
